@@ -94,10 +94,13 @@ export const generateRoutesFn2 = (routes: AppCustomRouteRecordRaw[]): AppRouteRe
 
   for (const route of routes) {
     const data: AppRouteRecordRaw = {
-      path: route.path,
-      name: route.name,
+      path: route.parent_id ? `${route.path}` : `/${route.path}`,
+      name: route.menu_title,
       redirect: route.redirect,
-      meta: route.meta
+      meta: {
+        title: route.menu_name,
+        icon: route.icon
+      }
     }
     if (route.component) {
       const comModule = modules[`../${route.component}.vue`] || modules[`../${route.component}.tsx`]
@@ -105,7 +108,6 @@ export const generateRoutesFn2 = (routes: AppCustomRouteRecordRaw[]): AppRouteRe
       if (!comModule && !component.includes('#')) {
         console.error(`未找到${route.component}.vue文件或${route.component}.tsx文件，请创建`)
       } else {
-        // 动态加载路由文件，可根据实际情况进行自定义逻辑
         data.component =
           component === '#' ? Layout : component.includes('##') ? getParentLayout() : comModule
       }

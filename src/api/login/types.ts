@@ -4,9 +4,10 @@ export type UserLoginType = {
 }
 
 export type UserType = {
+  id: number
   username: string
-  password: string
-  role: string
-  roleId: string
-  permissions: string | string[]
+  permission: string[]
+  is_active: boolean
+  is_admin: boolean
+  token: string
 }

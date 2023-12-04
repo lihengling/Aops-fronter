@@ -8,13 +8,21 @@ import {
 import { ElMessage } from 'element-plus'
 import qs from 'qs'
 
+import { useAppStore } from '@/store/modules/app'
+import { useStorage } from '@/hooks/web/useStorage'
+import { UserType } from '@/api/login/types'
+
+const appStore = useAppStore()
+
+const { getStorage } = useStorage()
+
 const config: AxiosConfig = {
   /**
    * api请求基础路径
    */
   baseUrl: {
     // 开发环境接口前缀
-    base: '',
+    base: 'http://127.0.0.1:8080',
 
     // 打包开发环境接口前缀
     dev: '',
@@ -29,7 +37,7 @@ const config: AxiosConfig = {
   /**
    * 接口成功返回状态码
    */
-  code: 0,
+  code: 200,
 
   /**
    * 接口请求超时时间
@@ -44,9 +52,16 @@ const config: AxiosConfig = {
 
   interceptors: {
     //请求拦截
-    // requestInterceptors: (config) => {
-    //   return config
-    // },
+    requestInterceptors: (config) => {
+      // 增加请求头
+      config = defaultRequestInterceptors(config)
+      const whiteList = ['/api/user/login', '/api/user/register'] // 不带请求头的接口
+      if (config.url && !whiteList.includes(config.url)) {
+        const userInfo: UserType = getStorage(appStore.getUserInfo)
+        config.headers['Authorization'] = `Bearer ${userInfo.token}`
+      }
+      return config
+    }
     // 响应拦截器
     // responseInterceptors: (result: AxiosResponse) => {
     //   return result
@@ -85,10 +100,10 @@ const defaultResponseInterceptors = (response: AxiosResponse<any>) => {
   if (response?.config?.responseType === 'blob') {
     // 如果是文件流，直接过
     return response
-  } else if (response.data.code === config.code) {
+  } else if (response.code === config.code) {
     return response.data
   } else {
-    ElMessage.error(response.data.message)
+    ElMessage.error(response.message)
   }
 }
 ;(error: AxiosError) => {

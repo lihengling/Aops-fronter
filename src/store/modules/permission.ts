@@ -34,15 +34,15 @@ export const usePermissionStore = defineStore('permission', {
   },
   actions: {
     generateRoutes(
-      type: 'admin' | 'test' | 'none',
+      type: 'BMake' | 'FMake' | 'static', // 后端生成 | 前端生成 | 静态路由
       routers?: AppCustomRouteRecordRaw[] | string[]
     ): Promise<unknown> {
       return new Promise<void>((resolve) => {
         let routerMap: AppRouteRecordRaw[] = []
-        if (type === 'admin') {
+        if (type === 'BMake') {
           // 模拟后端过滤菜单
           routerMap = generateRoutesFn2(routers as AppCustomRouteRecordRaw[])
-        } else if (type === 'test') {
+        } else if (type === 'FMake') {
           // 模拟前端过滤菜单
           routerMap = generateRoutesFn1(cloneDeep(asyncRouterMap), routers as string[])
         } else {

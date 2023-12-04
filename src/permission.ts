@@ -17,7 +17,7 @@ const { start, done } = useNProgress()
 
 const { loadStart, loadDone } = usePageLoading()
 
-const whiteList = ['/login'] // 不重定向白名单
+const whiteList = ['/login', '/register'] // 不重定向白名单
 
 router.beforeEach(async (to, from, next) => {
   start()
@@ -33,15 +33,12 @@ router.beforeEach(async (to, from, next) => {
 
       // 开发者可根据实际情况进行修改
       const roleRouters = getStorage('roleRouters') || []
-      const userInfo = getStorage(appStore.getUserInfo)
 
       // 是否使用动态路由
       if (appStore.getDynamicRouter) {
-        userInfo.role === 'admin'
-          ? await permissionStore.generateRoutes('admin', roleRouters as AppCustomRouteRecordRaw[])
-          : await permissionStore.generateRoutes('test', roleRouters as string[])
+        await permissionStore.generateRoutes('BMake', roleRouters as AppCustomRouteRecordRaw[])
       } else {
-        await permissionStore.generateRoutes('none')
+        await permissionStore.generateRoutes('static')
       }
 
       permissionStore.getAddRouters.forEach((route) => {

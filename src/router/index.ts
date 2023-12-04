@@ -10,11 +10,22 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
-    redirect: '/level',
+    redirect: '/dashboard',
     name: 'Root',
     meta: {
-      hidden: true
-    }
+      hidden: false
+    },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/Dashboard/index.vue'),
+        meta: {
+          title: '首页',
+          icon: 'carbon:dashboard'
+        }
+      }
+    ]
   },
   {
     path: '/redirect',

@@ -1,11 +1,25 @@
 import type {
   InternalAxiosRequestConfig,
-  AxiosResponse,
   AxiosRequestConfig,
   AxiosInstance,
   AxiosRequestHeaders,
-  AxiosError
+  AxiosError,
+  RawAxiosResponseHeaders,
+  AxiosResponseHeaders
 } from 'axios'
+
+interface AxiosResponse<T = any, D = any> {
+  // 自定义响应
+  data: T
+  code: number
+  message: string
+  config: InternalAxiosRequestConfig<D>
+  request?: any
+  total?: number
+  status: number
+  statusText: string
+  headers: RawAxiosResponseHeaders | AxiosResponseHeaders
+}
 
 interface RequestInterceptors<T> {
   // 请求拦截

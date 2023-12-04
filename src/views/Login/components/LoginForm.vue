@@ -4,7 +4,7 @@ import { Form, FormSchema } from '@/components/Form'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ElButton, ElCheckbox, ElLink } from 'element-plus'
 import { useForm } from '@/hooks/web/useForm'
-import { loginApi, getTestRoleApi, getAdminRoleApi } from '@/api/login'
+import { loginApi, getUserMenuApi } from '@/api/login'
 import { useStorage } from '@/hooks/web/useStorage'
 import { useAppStore } from '@/store/modules/app'
 import { usePermissionStore } from '@/store/modules/permission'
@@ -205,13 +205,6 @@ watch(
 
 // 登录
 const signIn = async () => {
-  await permissionStore.generateRoutes('none').catch(() => {})
-  permissionStore.getAddRouters.forEach((route) => {
-    addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
-  })
-  permissionStore.setIsAddRouters(true)
-  push({ path: redirect.value || permissionStore.addRouters[0].path })
-
   const formRef = await getElFormExpose()
   await formRef?.validate(async (isValid) => {
     if (isValid) {
@@ -222,12 +215,12 @@ const signIn = async () => {
         const res = await loginApi(formData)
 
         if (res) {
-          setStorage(appStore.getUserInfo, res.data)
+          setStorage(appStore.getUserInfo, res)
           // 是否使用动态路由
           if (appStore.getDynamicRouter) {
-            getRole()
+            await getRole()
           } else {
-            await permissionStore.generateRoutes('none').catch(() => {})
+            await permissionStore.generateRoutes('static').catch(() => {})
             permissionStore.getAddRouters.forEach((route) => {
               addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
             })
@@ -246,19 +239,14 @@ const signIn = async () => {
 const getRole = async () => {
   const formData = await getFormData<UserType>()
   const params = {
-    roleName: formData.username
+    item_id: formData.id
   }
-  // admin - 模拟后端过滤菜单
-  // test - 模拟前端过滤菜单
-  const res =
-    formData.username === 'admin' ? await getAdminRoleApi(params) : await getTestRoleApi(params)
-  if (res) {
-    const routers = res.data || []
+  // 获取用户菜单
+  const userMenu = await getUserMenuApi(params)
+  if (userMenu) {
+    const routers = userMenu['menus'] || []
     setStorage('roleRouters', routers)
-
-    formData.username === 'admin'
-      ? await permissionStore.generateRoutes('admin', routers).catch(() => {})
-      : await permissionStore.generateRoutes('test', routers).catch(() => {})
+    await permissionStore.generateRoutes('BMake', routers).catch(() => {})
 
     permissionStore.getAddRouters.forEach((route) => {
       addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
