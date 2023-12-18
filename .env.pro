@@ -2,7 +2,7 @@
 NODE_ENV=production
 
 # 接口前缀
-VITE_API_BASE_PATH=pro
+VITE_API_BASE_PATH='http://127.0.0.1:8080'
 
 # 打包路径
 VITE_BASE_PATH=/
@@ -20,4 +20,4 @@ VITE_SOURCEMAP=false
 VITE_OUT_DIR=dist-pro
 
 # 标题
-VITE_APP_TITLE=Aops-fronter
+VITE_APP_TITLE=Aops-Fronter

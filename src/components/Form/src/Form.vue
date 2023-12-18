@@ -93,9 +93,6 @@ export default defineComponent({
     // element form 实例
     const elFormRef = ref<ComponentRef<typeof ElForm>>()
 
-    // useForm传入的props
-    const outsideProps = ref<FormProps>({})
-
     const mergeProps = ref<FormProps>({})
 
     const getProps = computed(() => {
@@ -124,8 +121,6 @@ export default defineComponent({
 
     const setProps = (props: FormProps = {}) => {
       mergeProps.value = Object.assign(unref(mergeProps), props)
-      // @ts-ignore
-      outsideProps.value = props
     }
 
     const delSchema = (field: string) => {
@@ -334,7 +329,11 @@ export default defineComponent({
                   ref={(el: any) => setComponentRefMap(el, item.field)}
                   {...(autoSetPlaceholder && setTextPlaceholder(item))}
                   {...setComponentProps(item)}
-                  style={item.componentProps?.style || {}}
+                  style={
+                    item.componentProps?.style || {
+                      width: '100%'
+                    }
+                  }
                 >
                   {{ ...slotsMap }}
                 </Com>
@@ -387,6 +386,10 @@ export default defineComponent({
         {...getFormBindValue()}
         model={unref(getProps).isCustom ? unref(getProps).model : formModel}
         class={prefixCls}
+        // @ts-ignore
+        onSubmit={(e: Event) => {
+          e.preventDefault()
+        }}
       >
         {{
           // 如果需要自定义，就什么都不渲染，而是提供默认插槽
@@ -405,5 +408,9 @@ export default defineComponent({
 .@{elNamespace}-form.@{namespace}-form .@{elNamespace}-row {
   margin-right: 0 !important;
   margin-left: 0 !important;
+}
+
+.@{elNamespace}-form--inline .@{elNamespace}-input {
+  width: 245px;
 }
 </style>

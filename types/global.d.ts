@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'vue'
+import { AxiosRequestHeaders } from 'axios'
 declare global {
   declare interface Fn<T = any> {
     (...arg: T[]): T
@@ -25,7 +26,7 @@ declare global {
 
   declare type LayoutType = 'classic' | 'topLeft' | 'top' | 'cutMenu'
 
-  declare type AxiosHeaders =
+  declare type AxiosContentType =
     | 'application/json'
     | 'application/x-www-form-urlencoded'
     | 'multipart/form-data'
@@ -39,12 +40,22 @@ declare global {
     data?: any
     url?: string
     method?: AxiosMethod
-    headersType?: string
+    headers?: AxiosRequestHeaders
     responseType?: AxiosResponseType
   }
 
+  declare interface QueryParams {
+    query?: any
+    skip?: number
+    limit?: number
+  }
+
+  declare interface PrimaryKey {
+    id?: number
+  }
+
   declare interface IResponse<T = any> {
-    code: string
+    code: number
     data: T extends any ? T : T & any
   }
 

@@ -44,7 +44,12 @@ export default {
     refresh: '刷新',
     fullscreen: '全屏',
     size: '尺寸',
-    columnSetting: '列设置'
+    columnSetting: '列设置',
+    lengthRange: '长度在 {min} 到 {max} 个字符',
+    notSpace: '不能包含空格',
+    notSpecialCharacters: '不能包含特殊字符',
+    isEqual: '两次输入不一致',
+    searchLable: '模糊匹配'
   },
   lock: {
     lockScreen: '锁定屏幕',
@@ -89,7 +94,8 @@ export default {
     footer: '页脚',
     uniqueOpened: '菜单手风琴',
     tagsViewIcon: '标签页图标',
-    dynamicRouter: '动态路由',
+    dynamicRouter: '开启动态路由',
+    serverDynamicRouter: '服务端动态路由',
     reExperienced: '请重新退出登录体验',
     fixedMenu: '固定菜单'
   },
@@ -143,6 +149,7 @@ export default {
     defaultTable: '基础示例',
     editor: '编辑器',
     richText: '富文本',
+    jsonEditor: 'JSON编辑器',
     dialog: '弹窗',
     imageViewer: '图片预览',
     descriptions: '描述',
@@ -162,7 +169,18 @@ export default {
     treeTable: '树形表格',
     PicturePreview: '表格图片预览',
     department: '部门管理',
-    menuManagement: '菜单管理'
+    menuManagement: '菜单管理',
+    permission: '权限测试页',
+    function: '功能',
+    multipleTabs: '多开标签页',
+    details: '详情页',
+    iconPicker: '图标选择器',
+    request: '请求',
+    waterfall: '瀑布流',
+    imageCropping: '图片裁剪',
+    videoPlayer: '视频播放器',
+    tableVideoPreview: '表格视频预览',
+    cardTable: '卡片表格'
   },
   permission: {
     hasPermission: '请设置操作权限值'
@@ -290,6 +308,8 @@ export default {
     verifyReset: '验证重置',
     // 富文本编辑器
     richText: '富文本编辑器',
+    // JSON编辑器
+    jsonEditor: 'JSON编辑器',
     form: '表单',
     // 远程加载
     remoteLoading: '远程加载',
@@ -303,13 +323,14 @@ export default {
     customContent: '自定义内容',
     lazyLoad: '懒加载',
     upload: '上传',
-    userAvatar: '用户头像'
+    userAvatar: '用户头像',
+    iconPicker: '图标选择器'
   },
   guideDemo: {
     guide: '引导页',
     start: '开始',
     message:
-      '引导页对于一些第一次进入项目的人很有用，你可以简单介绍下项目的功能。引导页基于 intro.js'
+      '引导页对于一些第一次进入项目的人很有用，你可以简单介绍下项目的功能。引导页基于 driver.js'
   },
   iconDemo: {
     icon: '图标',
@@ -429,11 +450,15 @@ export default {
     fixedHeaderOrAuto: '固定头部/自动',
     getSelections: '获取多选数据',
     preview: '封面',
-    showOrHiddenSortable: '显示/隐藏排序'
+    showOrHiddenSortable: '显示/隐藏排序',
+    videoPreview: '视频预览',
+    cardTable: '卡片表格'
   },
   richText: {
     richText: '富文本',
-    richTextDes: '基于 wangeditor 二次封装'
+    richTextDes: '基于 wangeditor 二次封装',
+    jsonEditor: 'JSON编辑器',
+    jsonEditorDes: '基于 vue-json-pretty 二次封装'
   },
   dialogDemo: {
     dialog: '弹窗',
@@ -503,19 +528,29 @@ export default {
   menu: {
     menuName: '菜单名称',
     icon: '图标',
-    permission: '权限标识',
+    permission: '按钮权限',
     component: '组件',
     path: '路径',
     status: '状态',
     hidden: '是否隐藏',
+    show: '是否展示',
+    sort: '排序',
+    frameUrl: '外链地址',
+    redirectPath: '重定向路由',
     alwaysShow: '是否一直显示',
     noCache: '是否清除缓存',
+    isCache: '是否缓存页面',
     breadcrumb: '是否显示面包屑',
     affix: '是否固定在标签页',
     noTagsView: '是否隐藏标签页',
     activeMenu: '高亮菜单',
     canTo: '是否可跳转',
     name: '组件名称'
+  },
+  role: {
+    roleName: '角色名称',
+    role: '角色',
+    menu: '菜单分配'
   },
   inputPasswordDemo: {
     title: '密码输入框',

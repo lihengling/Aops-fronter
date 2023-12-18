@@ -44,7 +44,12 @@ export default {
     refresh: 'Refresh',
     fullscreen: 'Fullscreen',
     size: 'Size',
-    columnSetting: 'Column setting'
+    columnSetting: 'Column setting',
+    lengthRange: 'The length should be between {min} and {max}',
+    notSpace: 'Spaces are not allowed',
+    notSpecialCharacters: 'Special characters are not allowed',
+    isEqual: 'The two are not equal',
+    searchLable: 'Fuzzy matching'
   },
   lock: {
     lockScreen: 'Lock screen',
@@ -89,7 +94,9 @@ export default {
     footer: 'Footer',
     uniqueOpened: 'Unique opened',
     tagsViewIcon: 'Tags view icon',
-    dynamicRouter: 'Dynamic router',
+    // 开启动态路由
+    dynamicRouter: 'Enable dynamic router',
+    serverDynamicRouter: 'Server dynamic router',
     reExperienced: 'Please exit the login experience again',
     fixedMenu: 'Fixed menu'
   },
@@ -143,6 +150,7 @@ export default {
     defaultTable: 'Basic example',
     editor: 'Editor',
     richText: 'Rich text',
+    jsonEditor: 'JSON Editor',
     dialog: 'Dialog',
     imageViewer: 'Image viewer',
     descriptions: 'Descriptions',
@@ -162,7 +170,20 @@ export default {
     treeTable: 'Tree table',
     PicturePreview: 'Table Image Preview',
     department: 'Department management',
-    menuManagement: 'Menu management'
+    menuManagement: 'Menu management',
+    // 权限测试页面
+    permission: 'Permission test page',
+    function: 'Function',
+    multipleTabs: 'Multiple tabs',
+    details: 'Details',
+    iconPicker: 'Icon picker',
+    request: 'Request',
+    waterfall: 'Waterfall',
+    imageCropping: 'Image cropping',
+    videoPlayer: 'Video player',
+    // 表格视频预览
+    tableVideoPreview: 'Table video preview',
+    cardTable: 'Card table'
   },
   permission: {
     hasPermission: 'Please set the operation permission value'
@@ -291,6 +312,7 @@ export default {
     verifyReset: 'Verify reset',
     // 富文本编辑器
     richText: 'Rich text',
+    jsonEditor: 'JSON Editor',
     form: 'Form',
     // 远程加载
     remoteLoading: 'Remote loading',
@@ -307,13 +329,14 @@ export default {
     lazyLoad: 'Lazy load',
     upload: 'Upload',
     // 用户头像
-    userAvatar: 'User avatar'
+    userAvatar: 'User avatar',
+    iconPicker: 'Icon picker'
   },
   guideDemo: {
     guide: 'Guide',
     start: 'Start',
     message:
-      'The guide page is very useful for some people who enter the project for the first time. You can briefly introduce the functions of the project. The boot page is based on intro js'
+      'The guide page is very useful for some people who enter the project for the first time. You can briefly introduce the functions of the project. The boot page is based on driver.js'
   },
   iconDemo: {
     icon: 'Icon',
@@ -435,11 +458,15 @@ export default {
     fixedHeaderOrAuto: 'Fixed header or auto',
     getSelections: 'Get selections',
     preview: 'Preview',
-    showOrHiddenSortable: 'Show or hidden sortable'
+    showOrHiddenSortable: 'Show or hidden sortable',
+    videoPreview: 'Video preview',
+    cardTable: 'Card table'
   },
   richText: {
     richText: 'Rich text',
-    richTextDes: 'Secondary packaging based on wangeditor'
+    richTextDes: 'Secondary packaging based on wangeditor',
+    jsonEditor: 'JSON Editor',
+    jsonEditorDes: 'Secondary packaging based on vue-json-pretty'
   },
   dialogDemo: {
     dialog: 'Dialog',
@@ -514,14 +541,25 @@ export default {
     path: 'Path',
     status: 'Status',
     hidden: 'Hidden',
+    show: 'Show',
+    sort: 'Sort menu',
+    frameUrl: 'External link address',
+    redirectPath: 'Redirect path',
     alwaysShow: 'Always show',
     noCache: 'No cache',
+    isCache: 'Cache page',
     breadcrumb: 'Breadcrumb',
     affix: 'Affix',
     noTagsView: 'No tags view',
     activeMenu: 'Active menu',
     canTo: 'Can to',
     name: 'Name'
+  },
+  role: {
+    roleName: 'Role name',
+    role: 'Role',
+    // 菜单分配
+    menu: 'Menu allocation'
   },
   inputPasswordDemo: {
     title: 'InputPassword',

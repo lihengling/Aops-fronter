@@ -9,12 +9,12 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { useNow } from '@/hooks/web/useNow'
 import { useDesign } from '@/hooks/web/useDesign'
 import { Icon } from '@/components/Icon'
-import { loginOutApi } from '@/api/login'
 import { useTagsViewStore } from '@/store/modules/tagsView'
+import { useUserStore } from '@/store/modules/user'
 
 const tagsViewStore = useTagsViewStore()
 
-const { clear } = useStorage()
+const { clear } = useStorage('localStorage')
 
 const { replace } = useRouter()
 
@@ -27,6 +27,8 @@ const { getPrefixCls } = useDesign()
 const prefixCls = getPrefixCls('lock-page')
 
 const lockStore = useLockStore()
+
+const userStore = useUserStore()
 
 const { hour, month, minute, meridiem, year, day, week } = useNow(true)
 
@@ -49,14 +51,12 @@ async function unLock() {
 
 // 返回登录
 async function goLogin() {
-  const res = await loginOutApi().catch(() => {})
-  if (res) {
-    clear()
-    tagsViewStore.delAllViews()
-    resetRouter() // 重置静态路由表
-    lockStore.resetLockInfo()
-    replace('/login')
-  }
+  clear()
+  userStore.reset()
+  tagsViewStore.delAllViews()
+  resetRouter() // 重置静态路由表
+  lockStore.resetLockInfo()
+  replace('/login')
 }
 
 function handleShowForm(show = false) {
@@ -95,7 +95,9 @@ function handleShowForm(show = false) {
         <div :class="`${prefixCls}-entry-content`">
           <div class="flex flex-col items-center">
             <img src="@/assets/imgs/avatar.jpg" alt="" class="w-70px h-70px rounded-[50%]" />
-            <span class="text-14px my-10px text-[var(--logo-title-text-color)]">Archer</span>
+            <span class="text-14px my-10px text-[var(--logo-title-text-color)]">{{
+              userStore.getUserInfo?.username
+            }}</span>
           </div>
           <ElInput
             type="password"
@@ -205,6 +207,7 @@ function handleShowForm(show = false) {
         font-size: 90px;
       }
     }
+
     @media screen and (min-width: @screen-lg) {
       span:not(.meridiem) {
         font-size: 220px;
@@ -216,6 +219,7 @@ function handleShowForm(show = false) {
         font-size: 260px;
       }
     }
+
     @media screen and (min-width: @screen-2xl) {
       span:not(.meridiem) {
         font-size: 320px;

@@ -4,15 +4,16 @@ import { Form, FormSchema } from '@/components/Form'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ElButton, ElCheckbox, ElLink } from 'element-plus'
 import { useForm } from '@/hooks/web/useForm'
-import { loginApi, getUserMenuApi } from '@/api/login'
-import { useStorage } from '@/hooks/web/useStorage'
+import { loginApi } from '@/api/login'
+import { getUserMenuApi } from '@/api/user'
 import { useAppStore } from '@/store/modules/app'
 import { usePermissionStore } from '@/store/modules/permission'
 import { useRouter } from 'vue-router'
 import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from 'vue-router'
-import { UserType } from '@/api/login/types'
+import { UserLoginType, UserType } from '@/api/login/types'
 import { useValidator } from '@/hooks/web/useValidator'
 import { Icon } from '@/components/Icon'
+import { useUserStore } from '@/store/modules/user'
 
 const { required } = useValidator()
 
@@ -20,11 +21,11 @@ const emit = defineEmits(['to-register'])
 
 const appStore = useAppStore()
 
+const userStore = useUserStore()
+
 const permissionStore = usePermissionStore()
 
 const { currentRoute, addRoute, push } = useRouter()
-
-const { setStorage } = useStorage()
 
 const { t } = useI18n()
 
@@ -209,16 +210,17 @@ const signIn = async () => {
   await formRef?.validate(async (isValid) => {
     if (isValid) {
       loading.value = true
-      const formData = await getFormData<UserType>()
+      const formData = await getFormData<UserLoginType>()
 
       try {
         const res = await loginApi(formData)
 
         if (res) {
-          setStorage(appStore.getUserInfo, res)
+          userStore.setUserInfo(res.data)
+          userStore.setToken(res.data.token)
           // 是否使用动态路由
           if (appStore.getDynamicRouter) {
-            await getRole()
+            getRole()
           } else {
             await permissionStore.generateRoutes('static').catch(() => {})
             permissionStore.getAddRouters.forEach((route) => {
@@ -235,18 +237,23 @@ const signIn = async () => {
   })
 }
 
-// 获取角色信息
+// 获取路由信息
 const getRole = async () => {
-  const formData = await getFormData<UserType>()
-  const params = {
-    item_id: formData.id
+  const user: UserType | undefined = userStore.getUserInfo
+  if (!user) {
+    return
   }
-  // 获取用户菜单
-  const userMenu = await getUserMenuApi(params)
-  if (userMenu) {
-    const routers = userMenu['menus'] || []
-    setStorage('roleRouters', routers)
-    await permissionStore.generateRoutes('BMake', routers).catch(() => {})
+  const params = {
+    item_id: user.id
+  }
+
+  const res = await getUserMenuApi(params)
+  if (res) {
+    const routers = res.data.menus || []
+    userStore.setRoleRouters(routers)
+    appStore.getDynamicRouter && appStore.getServerDynamicRouter
+      ? await permissionStore.generateRoutes('server', routers).catch(() => {})
+      : await permissionStore.generateRoutes('frontEnd', routers).catch(() => {})
 
     permissionStore.getAddRouters.forEach((route) => {
       addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
