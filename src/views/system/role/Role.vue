@@ -1,94 +1,103 @@
 <script setup lang="tsx">
 import { reactive, ref, unref } from 'vue'
-import { createMenuApi, deleteMenuApi, getMenuListApi, updateMenuApi } from '@/api/menu'
+import { createRoleApi, getRoleListApi } from '@/api/role'
 import { useTable } from '@/hooks/web/useTable'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table, TableColumn } from '@/components/Table'
-import { ElButton, ElTag, ElMessage, ElMessageBox } from 'element-plus'
-import { Icon } from '@/components/Icon'
+import { ElButton, ElTag } from 'element-plus'
 import { Search } from '@/components/Search'
 import { FormSchema } from '@/components/Form'
 import { ContentWrap } from '@/components/ContentWrap'
 import Write from './components/Write.vue'
 import Detail from './components/Detail.vue'
 import { Dialog } from '@/components/Dialog'
+import { updateRoleApi, deleteRoleApi } from '@/api/role'
 
 const { t } = useI18n()
 
+const ids = ref<string[]>([])
+
+const delLoading = ref(false)
+
 const { tableRegister, tableState, tableMethods } = useTable({
   fetchDataApi: async () => {
-    const res = await getMenuListApi(searchParams.value)
+    const { currentPage, pageSize } = tableState
+    const res = await getRoleListApi(
+      {
+        pageIndex: unref(currentPage),
+        pageSize: unref(pageSize)
+      },
+      searchParams.value
+    )
     return {
-      list: res.data || []
+      list: res.data || [],
+      total: res.total
     }
+  },
+  fetchDelApi: async () => {
+    const results: boolean[] = [] // 存储删除结果的数组
+
+    for (var id in unref(ids)) {
+      const currentId = parseInt(unref(ids)[id])
+      const res = await deleteRoleApi({ id: currentId })
+      results.push(!!res) // 将删除结果添加到数组中
+    }
+
+    const allDeleted = results.every((result) => result) // 判断数组中的所有结果是否都为真（删除成功）
+    return allDeleted
   }
 })
 
-const { dataList, loading } = tableState
-const { getList } = tableMethods
+const { dataList, loading, total } = tableState
+const { getList, getElTableExpose, delList } = tableMethods
 
 const tableColumns = reactive<TableColumn[]>([
   {
     field: 'id',
     label: t('userDemo.index'),
-    type: 'id'
+    type: 'index'
   },
   {
-    field: 'menu_title',
-    label: t('menu.menuName'),
-    slots: {
-      default: (data: any) => {
-        const title = data.row.menu_title
-        return <>{title}</>
-      }
-    }
+    field: 'name',
+    label: '角色标识'
   },
   {
-    field: 'icon',
-    label: t('menu.icon'),
-    slots: {
-      default: (data: any) => {
-        const icon = data.row.icon
-        if (icon) {
-          return (
-            <>
-              <Icon icon={icon} />
-            </>
-          )
-        } else {
-          return null
-        }
-      }
-    }
+    field: 'role_name',
+    label: t('role.roleName')
   },
   {
-    field: 'component',
-    label: t('menu.component'),
-    slots: {
-      default: (data: any) => {
-        const component = data.row.component
-        return <>{component === '#' ? '顶级目录' : component === '##' ? '子目录' : component}</>
-      }
-    }
-  },
-  {
-    field: 'path',
-    label: t('menu.path')
-  },
-  {
-    field: 'is_show',
-    label: t('menu.status'),
+    field: 'is_admin',
+    label: '是否管理员',
     slots: {
       default: (data: any) => {
         return (
           <>
-            <ElTag type={data.row.is_show ? 'success' : 'danger'}>
-              {data.row.is_show ? t('userDemo.enable') : t('userDemo.disable')}
+            <ElTag type={data.row.is_admin ? 'success' : 'danger'}>
+              {data.row.is_admin ? '是' : '否'}
             </ElTag>
           </>
         )
       }
     }
+  },
+  {
+    field: 'is_active',
+    label: t('menu.status'),
+    slots: {
+      default: (data: any) => {
+        return (
+          <>
+            <ElTag type={data.row.is_active ? 'success' : 'danger'}>
+              {data.row.is_active ? t('userDemo.enable') : t('userDemo.disable')}
+            </ElTag>
+          </>
+        )
+      }
+    }
+  },
+  {
+    field: 'description',
+    label: t('userDemo.remark')
   },
   {
     field: 'action',
@@ -105,7 +114,7 @@ const tableColumns = reactive<TableColumn[]>([
             <ElButton type="success" onClick={() => action(row, 'detail')}>
               {t('exampleDemo.detail')}
             </ElButton>
-            <ElButton type="danger" onClick={() => DeleteAction(row)}>
+            <ElButton type="danger" onClick={() => delData(data.row)}>
               {t('exampleDemo.del')}
             </ElButton>
           </>
@@ -153,43 +162,38 @@ const AddAction = () => {
   actionType.value = ''
 }
 
-const DeleteAction = async (row: any) => {
-  const confirmMsg = `是否删除${
-    row.component.includes('#') ? '目录（目录下的子菜单都会删除）' : '菜单'
-  } ${row.menu_title}`
-  ElMessageBox.confirm(confirmMsg, 'Warning', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning'
+const delData = async (row: RoleBase | null) => {
+  const elTableExpose = await getElTableExpose()
+  ids.value = row ? [row.id] : elTableExpose?.getSelectionRows().map((v: RoleBase) => v.id) || []
+  delLoading.value = true
+  await delList(unref(ids).length).finally(() => {
+    delLoading.value = false
   })
-    .then(async () => {
-      await deleteMenuApi({ id: row.id })
-      ElMessage({
-        type: 'success',
-        message: '删除成功'
-      })
-      getList()
-    })
-    .catch(() => {})
 }
 
 const save = async () => {
   const write = unref(writeRef)
   const formData = await write?.submit()
   if (formData) {
-    try {
-      saveLoading.value = true
-      if (actionType.value === 'edit') {
-        await updateMenuApi(formData)
-      } else {
-        await createMenuApi(formData)
-      }
-      saveLoading.value = false
+    let res
+    if (actionType.value === 'edit') {
+      res = await updateRoleApi(formData)
+        .catch(() => {})
+        .finally(() => {
+          saveLoading.value = false
+        })
+      // 新增
+    } else {
+      delete formData['id']
+      res = await createRoleApi(formData)
+        .catch(() => {})
+        .finally(() => {
+          saveLoading.value = false
+        })
+    }
+    if (res) {
       dialogVisible.value = false
-      ElMessage.success('操作成功')
       getList()
-    } catch (error) {
-      saveLoading.value = false
     }
   }
 }
@@ -207,14 +211,16 @@ const save = async () => {
       node-key="id"
       :data="dataList"
       :loading="loading"
+      :pagination="{
+        total
+      }"
       @register="tableRegister"
     />
   </ContentWrap>
 
   <Dialog v-model="dialogVisible" :title="dialogTitle">
     <Write v-if="actionType !== 'detail'" ref="writeRef" :current-row="currentRow" />
-
-    <Detail v-if="actionType === 'detail'" :current-row="currentRow" />
+    <Detail v-else :current-row="currentRow" />
 
     <template #footer>
       <ElButton v-if="actionType !== 'detail'" type="primary" :loading="saveLoading" @click="save">

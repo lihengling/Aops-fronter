@@ -1,26 +1,57 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import { Form, FormSchema } from '@/components/Form'
 import { useForm } from '@/hooks/web/useForm'
-import { PropType, reactive, watch } from 'vue'
+import { PropType, reactive, watch, ref } from 'vue'
 import { useValidator } from '@/hooks/web/useValidator'
-import { DepartmentItem } from '@/api/department/types'
+import { useI18n } from '@/hooks/web/useI18n'
+
+const { t } = useI18n()
 
 const { required } = useValidator()
 
 const props = defineProps({
   currentRow: {
-    type: Object as PropType<Nullable<DepartmentItem>>,
+    type: Object as PropType<any>,
     default: () => null
-  },
-  formSchema: {
-    type: Array as PropType<FormSchema[]>,
-    default: () => []
   }
 })
 
+const formSchema = ref<FormSchema[]>([
+  {
+    field: 'permission_name',
+    label: '权限名称',
+    component: 'Input'
+  },
+  {
+    field: 'is_active',
+    label: t('menu.status'),
+    component: 'Select',
+    componentProps: {
+      options: [
+        {
+          label: t('userDemo.disable'),
+          value: false
+        },
+        {
+          label: t('userDemo.enable'),
+          value: true
+        }
+      ]
+    }
+  },
+  {
+    field: 'description',
+    label: '备注',
+    component: 'Input',
+    componentProps: {
+      type: 'textarea',
+      rows: 2
+    }
+  }
+])
+
 const rules = reactive({
-  id: [required()],
-  status: [required()]
+  permission_name: [required()]
 })
 
 const { formRegister, formMethods } = useForm()

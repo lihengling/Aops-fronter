@@ -1,51 +1,63 @@
 <script setup lang="tsx">
 import { reactive, ref, unref } from 'vue'
-import { getRoleListApi } from '@/api/role'
 import { useTable } from '@/hooks/web/useTable'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table, TableColumn } from '@/components/Table'
-import { ElButton, ElTag } from 'element-plus'
+import { ElButton, ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import { Search } from '@/components/Search'
 import { FormSchema } from '@/components/Form'
 import { ContentWrap } from '@/components/ContentWrap'
 import Write from './components/Write.vue'
 import Detail from './components/Detail.vue'
 import { Dialog } from '@/components/Dialog'
+import {
+  createPermissionApi,
+  deletePermissionApi,
+  getPermissionListApi,
+  updatePermissionApi
+} from '@/api/permission'
 
 const { t } = useI18n()
 
 const { tableRegister, tableState, tableMethods } = useTable({
   fetchDataApi: async () => {
-    const res = await getRoleListApi()
+    const { currentPage, pageSize } = tableState
+    const res = await getPermissionListApi(
+      {
+        pageIndex: unref(currentPage),
+        pageSize: unref(pageSize)
+      },
+      searchParams.value
+    )
     return {
-      list: res.data.list || [],
-      total: res.data.total
+      list: res.data || [],
+      total: res.total
     }
   }
 })
 
-const { dataList, loading, total } = tableState
+const { dataList, loading, total, currentPage, pageSize } = tableState
 const { getList } = tableMethods
 
 const tableColumns = reactive<TableColumn[]>([
   {
-    field: 'index',
+    field: 'id',
     label: t('userDemo.index'),
     type: 'index'
   },
   {
-    field: 'roleName',
+    field: 'permission_name',
     label: t('role.roleName')
   },
   {
-    field: 'status',
+    field: 'is_active',
     label: t('menu.status'),
     slots: {
       default: (data: any) => {
         return (
           <>
-            <ElTag type={data.row.status === 0 ? 'danger' : 'success'}>
-              {data.row.status === 1 ? t('userDemo.enable') : t('userDemo.disable')}
+            <ElTag type={data.row.is_active ? 'success' : 'danger'}>
+              {data.row.is_active ? t('userDemo.enable') : t('userDemo.disable')}
             </ElTag>
           </>
         )
@@ -53,11 +65,7 @@ const tableColumns = reactive<TableColumn[]>([
     }
   },
   {
-    field: 'createTime',
-    label: t('tableDemo.displayTime')
-  },
-  {
-    field: 'remark',
+    field: 'description',
     label: t('userDemo.remark')
   },
   {
@@ -75,7 +83,9 @@ const tableColumns = reactive<TableColumn[]>([
             <ElButton type="success" onClick={() => action(row, 'detail')}>
               {t('exampleDemo.detail')}
             </ElButton>
-            <ElButton type="danger">{t('exampleDemo.del')}</ElButton>
+            <ElButton type="danger" onClick={() => DeleteAction(data.row)}>
+              {t('exampleDemo.del')}
+            </ElButton>
           </>
         )
       }
@@ -85,8 +95,8 @@ const tableColumns = reactive<TableColumn[]>([
 
 const searchSchema = reactive<FormSchema[]>([
   {
-    field: 'roleName',
-    label: t('role.roleName'),
+    field: 'query',
+    label: t('common.searchLable'),
     component: 'Input'
   }
 ])
@@ -121,15 +131,50 @@ const AddAction = () => {
   actionType.value = ''
 }
 
+const DeleteAction = async (row: any) => {
+  const confirmMsg = `是否删除${row.permission_name}（拥有该权限的所有角色都会删除此权限）`
+  ElMessageBox.confirm(confirmMsg, 'Warning', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      await deletePermissionApi({ id: row.id })
+      ElMessage({
+        type: 'success',
+        message: '删除成功'
+      })
+      getList()
+    })
+    .catch(() => {})
+}
+
 const save = async () => {
   const write = unref(writeRef)
   const formData = await write?.submit()
   if (formData) {
     saveLoading.value = true
-    setTimeout(() => {
-      saveLoading.value = false
+    let res
+    // 编辑
+    if (actionType.value === 'edit') {
+      res = await updatePermissionApi(formData)
+        .catch(() => {})
+        .finally(() => {
+          saveLoading.value = false
+        })
+      // 新增
+    } else {
+      res = await createPermissionApi(formData)
+        .catch(() => {})
+        .finally(() => {
+          saveLoading.value = false
+        })
+    }
+    if (res) {
       dialogVisible.value = false
-    }, 1000)
+      currentPage.value = 1
+      getList()
+    }
   }
 }
 </script>
@@ -141,6 +186,8 @@ const save = async () => {
       <ElButton type="primary" @click="AddAction">{{ t('exampleDemo.add') }}</ElButton>
     </div>
     <Table
+      v-model:pageSize="pageSize"
+      v-model:currentPage="currentPage"
       :columns="tableColumns"
       default-expand-all
       node-key="id"

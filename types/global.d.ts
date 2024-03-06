@@ -46,8 +46,11 @@ declare global {
 
   declare interface QueryParams {
     query?: any
-    skip?: number
-    limit?: number
+  }
+
+  declare interface PageParams {
+    pageSize?: number
+    pageIndex?: number
   }
 
   declare interface PrimaryKey {
@@ -55,8 +58,10 @@ declare global {
   }
 
   declare interface IResponse<T = any> {
+    [x: string]: any
     code: number
     data: T extends any ? T : T & any
+    total: number
   }
 
   declare interface ThemeTypes {

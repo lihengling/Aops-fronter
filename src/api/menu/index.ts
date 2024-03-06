@@ -1,6 +1,6 @@
 import request from '@/axios'
 
-export const getMenuListApi = (data: QueryParams): Promise<IResponse<MenuListResponse[]>> => {
+export const getMenuListApi = (data: QueryParams = {}): Promise<IResponse<MenuListResponse[]>> => {
   return request.get({ url: '/api/menu/list/', data })
 }
 

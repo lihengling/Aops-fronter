@@ -31,7 +31,7 @@ router.beforeEach(async (to, from, next) => {
       }
 
       // 开发者可根据实际情况进行修改
-      const res = await getUserMenuApi({ item_id: user.id })
+      const res = await getUserMenuApi({ id: user.id })
       const roleRouters = res.data.menus || []
 
       // 是否使用动态路由

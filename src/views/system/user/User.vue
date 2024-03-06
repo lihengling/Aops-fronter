@@ -3,36 +3,43 @@ import { ContentWrap } from '@/components/ContentWrap'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Table } from '@/components/Table'
 import { ref, unref, nextTick, watch, reactive } from 'vue'
-import { ElButton, ElTree, ElInput, ElDivider } from 'element-plus'
-import { getDepartmentApi, getUserByIdApi, saveUserApi, deleteUserByIdApi } from '@/api/department'
-import type { DepartmentItem, DepartmentUserItem } from '@/api/department/types'
+import { ElButton, ElTree, ElInput, ElDivider, ElTag } from 'element-plus'
 import { useTable } from '@/hooks/web/useTable'
 import { Search } from '@/components/Search'
 import Write from './components/Write.vue'
 import Detail from './components/Detail.vue'
 import { Dialog } from '@/components/Dialog'
-import { getRoleListApi } from '@/api/role'
 import { CrudSchema, useCrudSchemas } from '@/hooks/web/useCrudSchemas'
+import { deleteUserApi, getUserListApi } from '@/api/user'
+import { getDepartmentListApi } from '@/api/department'
+import { getRoleListApi } from '@/api/role'
 
 const { t } = useI18n()
 
 const { tableRegister, tableState, tableMethods } = useTable({
   fetchDataApi: async () => {
     const { pageSize, currentPage } = tableState
-    const res = await getUserByIdApi({
-      id: unref(currentNodeKey),
+    const res = await getUserListApi({
       pageIndex: unref(currentPage),
       pageSize: unref(pageSize),
       ...unref(searchParams)
     })
     return {
-      list: res.data.list || [],
-      total: res.data.total || 0
+      list: res.data || [],
+      total: res.total || 0
     }
   },
   fetchDelApi: async () => {
-    const res = await deleteUserByIdApi(unref(ids))
-    return !!res
+    const results: boolean[] = [] // 存储删除结果的数组
+
+    for (var id in unref(ids)) {
+      const currentId = parseInt(unref(ids)[id])
+      const res = await deleteUserApi({ id: currentId })
+      results.push(!!res) // 将删除结果添加到数组中
+    }
+
+    const allDeleted = results.every((result) => result) // 判断数组中的所有结果是否都为真（删除成功）
+    return allDeleted
   }
 })
 const { total, loading, dataList, pageSize, currentPage } = tableState
@@ -75,38 +82,46 @@ const crudSchemas = reactive<CrudSchema[]>([
     label: t('userDemo.username')
   },
   {
-    field: 'account',
-    label: t('userDemo.account')
+    field: 'is_admin',
+    label: '是否管理员',
+    slots: {
+      default: (data: any) => {
+        return (
+          <>
+            <ElTag type={data.row.is_admin ? 'success' : 'danger'}>
+              {data.row.is_admin ? '是' : '否'}
+            </ElTag>
+          </>
+        )
+      }
+    }
   },
   {
-    field: 'department.id',
+    field: 'is_active',
+    label: t('menu.status'),
+    slots: {
+      default: (data: any) => {
+        return (
+          <>
+            <ElTag type={data.row.is_active ? 'success' : 'danger'}>
+              {data.row.is_active ? t('userDemo.enable') : t('userDemo.disable')}
+            </ElTag>
+          </>
+        )
+      }
+    }
+  },
+  {
+    field: 'department',
     label: t('userDemo.department'),
     detail: {
       hidden: true
-      // slots: {
-      //   default: (data: DepartmentUserItem) => {
-      //     return <>{data.department.departmentName}</>
-      //   }
-      // }
     },
     search: {
       hidden: true
     },
-    form: {
-      component: 'TreeSelect',
-      componentProps: {
-        nodeKey: 'id',
-        props: {
-          label: 'departmentName'
-        }
-      },
-      optionApi: async () => {
-        const res = await getDepartmentApi()
-        return res.data.list
-      }
-    },
     table: {
-      hidden: true
+      hidden: false
     }
   },
   {
@@ -121,33 +136,27 @@ const crudSchemas = reactive<CrudSchema[]>([
       componentProps: {
         multiple: true,
         collapseTags: true,
-        maxCollapseTags: 1
+        maxCollapseTags: 1,
+        nodeKey: 'id',
+        props: {
+          label: 'role.role_name'
+        }
       },
       optionApi: async () => {
         const res = await getRoleListApi()
-        return res.data?.list?.map((v) => ({
-          label: v.roleName,
+        return res.data.map((v) => ({
+          label: v.role_name,
           value: v.id
         }))
       }
-    }
-  },
-  {
-    field: 'email',
-    label: t('userDemo.email'),
-    form: {
-      component: 'Input'
     },
-    search: {
+    table: {
       hidden: true
     }
   },
   {
-    field: 'createTime',
+    field: 'created_at',
     label: t('userDemo.createTime'),
-    form: {
-      component: 'Input'
-    },
     search: {
       hidden: true
     }
@@ -168,7 +177,7 @@ const crudSchemas = reactive<CrudSchema[]>([
       width: 240,
       slots: {
         default: (data: any) => {
-          const row = data.row as DepartmentUserItem
+          const row = data.row
           return (
             <>
               <ElButton type="primary" onClick={() => action(row, 'edit')}>
@@ -199,13 +208,12 @@ const setSearchParams = (params: any) => {
 
 const treeEl = ref<typeof ElTree>()
 
-const currentNodeKey = ref('')
-const departmentList = ref<DepartmentItem[]>([])
+const currentNodeKey = ref(0)
+const departmentList = ref<DepartmentListResponse[]>([])
 const fetchDepartment = async () => {
-  const res = await getDepartmentApi()
-  departmentList.value = res.data.list
-  currentNodeKey.value =
-    (res.data.list[0] && res.data.list[0]?.children && res.data.list[0].children[0].id) || ''
+  const res = await getDepartmentListApi()
+  departmentList.value = res.data
+  currentNodeKey.value = (res.data[0] && res.data[0]?.children && res.data[0].children[0].id) || 0
   await nextTick()
   unref(treeEl)?.setCurrentKey(currentNodeKey.value)
 }
@@ -219,22 +227,22 @@ watch(
   }
 )
 
-const currentChange = (data: DepartmentItem) => {
+const currentChange = (data: DepartmentBase) => {
   // if (data.children) return
   currentNodeKey.value = data.id
   currentPage.value = 1
   getList()
 }
 
-const filterNode = (value: string, data: DepartmentItem) => {
+const filterNode = (value: string, data: DepartmentBase) => {
   if (!value) return true
-  return data.departmentName.includes(value)
+  return data.department_name.includes(value)
 }
 
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 
-const currentRow = ref<DepartmentUserItem>()
+const currentRow = ref()
 const actionType = ref('')
 
 const AddAction = () => {
@@ -247,11 +255,9 @@ const AddAction = () => {
 const delLoading = ref(false)
 const ids = ref<string[]>([])
 
-const delData = async (row?: DepartmentUserItem) => {
+const delData = async (row?) => {
   const elTableExpose = await getElTableExpose()
-  ids.value = row
-    ? [row.id]
-    : elTableExpose?.getSelectionRows().map((v: DepartmentUserItem) => v.id) || []
+  ids.value = row ? [row.id] : elTableExpose?.getSelectionRows().map((v) => v.id) || []
   delLoading.value = true
 
   await delList(unref(ids).length).finally(() => {
@@ -259,7 +265,7 @@ const delData = async (row?: DepartmentUserItem) => {
   })
 }
 
-const action = (row: DepartmentUserItem, type: string) => {
+const action = (row, type: string) => {
   dialogTitle.value = t(type === 'edit' ? 'exampleDemo.edit' : 'exampleDemo.detail')
   actionType.value = type
   currentRow.value = { ...row, department: unref(treeEl)?.getCurrentNode() || {} }
@@ -276,7 +282,9 @@ const save = async () => {
   if (formData) {
     saveLoading.value = true
     try {
-      const res = await saveUserApi(formData)
+      // 修改
+      // const res = await saveUserApi(formData)
+      const res = true
       if (res) {
         currentPage.value = 1
         getList()
@@ -312,17 +320,17 @@ const save = async () => {
         node-key="id"
         :current-node-key="currentNodeKey"
         :props="{
-          label: 'departmentName'
+          label: 'department_name'
         }"
         :filter-node-method="filterNode"
         @current-change="currentChange"
       >
         <template #default="{ data }">
           <div
-            :title="data.departmentName"
+            :title="data.department_name"
             class="whitespace-nowrap overflow-ellipsis overflow-hidden"
           >
-            {{ data.departmentName }}
+            {{ data.department_name }}
           </div>
         </template>
       </ElTree>

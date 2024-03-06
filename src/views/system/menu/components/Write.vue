@@ -5,8 +5,6 @@ import { PropType, reactive, watch, ref, unref } from 'vue'
 import { useValidator } from '@/hooks/web/useValidator'
 import { useI18n } from '@/hooks/web/useI18n'
 import { getMenuListApi } from '@/api/menu'
-// import { ElTag, ElButton } from 'element-plus'
-import AddButtonPermission from './AddButtonPermission.vue'
 
 const { t } = useI18n()
 
@@ -18,16 +16,6 @@ const props = defineProps({
     default: () => null
   }
 })
-
-// const handleClose = async (tag: any) => {
-//   const formData = await getFormData()
-//   // 删除对应的权限
-//   setValues({
-//     permissionList: formData?.permissionList?.filter((v: any) => v.value !== tag.value)
-//   })
-// }
-
-const showDrawer = ref(false)
 
 const formSchema = reactive<FormSchema[]>([
   {
@@ -105,8 +93,6 @@ const formSchema = reactive<FormSchema[]>([
       on: {
         change: async (val: number) => {
           const formData = await getFormData()
-          console.log(val)
-          console.log(formData)
           if (val && !formData.is_menu) {
             setValues({
               component: '##'
@@ -195,32 +181,6 @@ const formSchema = reactive<FormSchema[]>([
       ]
     }
   },
-  // {
-  //   field: 'permissionList',
-  //   label: t('menu.permission'),
-  //   component: 'CheckboxGroup',
-  //   colProps: {
-  //     span: 24
-  //   },
-  //   formItemProps: {
-  //     slots: {
-  //       default: (data: any) => (
-  //         <>
-  //           {data?.permissionList?.map((v) => {
-  //             return (
-  //               <ElTag class="mr-1" key={v.value} closable onClose={() => handleClose(v)}>
-  //                 {v.label}
-  //               </ElTag>
-  //             )
-  //           })}
-  //           <ElButton type="primary" size="small" onClick={() => (showDrawer.value = true)}>
-  //             添加权限
-  //           </ElButton>
-  //         </>
-  //       )
-  //     }
-  //   }
-  // },
   {
     field: 'is_show',
     label: t('menu.show'),
@@ -306,16 +266,8 @@ watch(
 defineExpose({
   submit
 })
-
-const confirm = async (data: any) => {
-  const formData = await getFormData()
-  setValues({
-    permissionList: [...(formData?.permissionList || []), data]
-  })
-}
 </script>
 
 <template>
   <Form :rules="rules" @register="formRegister" :schema="formSchema" />
-  <AddButtonPermission v-model="showDrawer" @confirm="confirm" />
 </template>

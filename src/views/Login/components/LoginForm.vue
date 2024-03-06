@@ -243,11 +243,8 @@ const getRole = async () => {
   if (!user) {
     return
   }
-  const params = {
-    item_id: user.id
-  }
 
-  const res = await getUserMenuApi(params)
+  const res = await getUserMenuApi({ id: user.id })
   if (res) {
     const routers = res.data.menus || []
     userStore.setRoleRouters(routers)

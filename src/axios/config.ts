@@ -34,7 +34,6 @@ const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
     const userStore = useUserStoreWithOut()
     config.headers[userStore.getTokenKey ?? 'Authorization'] = `Bearer ${userStore.getToken}` ?? ''
   }
-  console.log(config)
   return config
 }
 

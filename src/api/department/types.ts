@@ -1,32 +1,25 @@
-export interface DepartmentItem {
-  id: string
-  departmentName: string
-  children?: DepartmentItem[]
+type DepartmentBase = {
+  id: number
+  is_active: boolean
+  department_name: string
 }
 
-export interface DepartmentListResponse {
-  list: DepartmentItem[]
+type DepartmentListResponse = {
+  id: number
+  parent_id: number
+  is_active: boolean
+  description: string
+  department_name: string
+  children?: DepartmentListResponse[]
 }
 
-export interface DepartmentUserParams {
-  pageSize: number
-  pageIndex: number
-  id: string
-  username?: string
-  account?: string
+type DepartmentCreateRequest = {
+  is_active: boolean
+  parent_id: number
+  department_name: string
+  description: string
 }
 
-export interface DepartmentUserItem {
-  id: string
-  username: string
-  account: string
-  email: string
-  createTime: string
-  role: string
-  department: DepartmentItem
-}
-
-export interface DepartmentUserResponse {
-  list: DepartmentUserItem[]
-  total: number
+type DepartmentUpdateRequest = DepartmentCreateRequest & {
+  id: number
 }
